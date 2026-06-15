@@ -1231,3 +1231,67 @@ function lsw_footer_customizer_settings($wp_customize)
         'section'  => 'footer_style_section',
     )));
 }
+
+// ADDING HOME AND OTHER PAGES WHILE ACTIVATING THEME..................
+// --- SETUP PAGES ON THEME ACTIVATION ---
+
+// --- SETUP PAGES ON THEME ACTIVATION ---
+
+/**
+ * Create a page if it does not already exist.
+ */
+function lsw_create_page_if_missing($title, $content = '', $slug = '') {
+    $page = get_page_by_title($title, OBJECT, 'page');
+    if ($page && 'trash' !== $page->post_status) {
+        return $page->ID;
+    }
+
+    if ($slug) {
+        $existing = get_page_by_path($slug, OBJECT, 'page');
+        if ($existing && 'trash' !== $existing->post_status) {
+            return $existing->ID;
+        }
+    }
+
+    $post_data = array(
+        'post_title'   => $title,
+        'post_name'    => $slug ? sanitize_title($slug) : sanitize_title($title),
+        'post_content' => $content,
+        'post_status'  => 'publish',
+        'post_type'    => 'page',
+    );
+
+    return wp_insert_post($post_data);
+}
+
+/**
+ * Setup Pages and Media on Theme Activation
+ */
+function lsw_setup_pages_with_media() {
+    // Path to the hero image inside the theme.
+    $image_url = '';
+    $hero_path = get_template_directory() . '/assets/images/hero.jpg';
+    $screenshot_path = get_template_directory() . '/screenshot.jpg';
+
+    if (file_exists($hero_path)) {
+        $image_url = get_template_directory_uri() . '/assets/images/hero.jpg';
+    } elseif (file_exists($screenshot_path)) {
+        $image_url = get_template_directory_uri() . '/screenshot.jpg';
+    }
+
+    $image_html = '';
+    if ($image_url) {
+        $image_html = '<figure class="wp-block-image size-large"><img src="' . esc_url($image_url) . '" alt="Hero Image" class="hero-image"/></figure>';
+    }
+
+    $home_id = lsw_create_page_if_missing('Home', '<p>Welcome to our site.</p>' . $image_html, 'home');
+    lsw_create_page_if_missing('Services', '<p>Our services are designed to help your business grow.</p>' . $image_html, 'services');
+    lsw_create_page_if_missing('About', '<p>Learn more about us.</p>' . $image_html, 'about');
+
+    if ($home_id && !is_wp_error($home_id)) {
+        update_option('show_on_front', 'page');
+        update_option('page_on_front', $home_id);
+    }
+}
+add_action('after_switch_theme', 'lsw_setup_pages_with_media');
+add_action('admin_init', 'lsw_setup_pages_with_media');
