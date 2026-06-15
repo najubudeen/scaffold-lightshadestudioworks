@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "tailwindcss": "^4.3.0"
+  },
+  "scripts": {
+    "start": "npm run watch",
+    "watch": "npx @tailwindcss/cli -i ./src/input.css -o ./assets/css/lightshadestudioworks-tailwindcss.css --watch",
+    "build": "npx @tailwindcss/cli -i ./src/input.css -o ./assets/css/lightshadestudioworks-tailwindcss.css --minify && wp-scripts build"
+  },
+  "devDependencies": {}
+}
