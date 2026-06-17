@@ -330,7 +330,6 @@ function lightshadestudioworks_customizer_settings($wp_customize)
 
 // --- 2. PAGE CREATION LOGIC ---
 
-require_once get_template_directory() . '/inc/plugins/axis-folio/axis-folio.php';
 
 // 1. SET THE FLAG ON ACTIVATION
 
