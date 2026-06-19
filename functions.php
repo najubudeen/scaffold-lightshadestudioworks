@@ -313,9 +313,6 @@ function lightshadestudioworks_customizer_settings($wp_customize)
 }
 
 // --- SETUP PAGES ON ACTIVATION ---
-/**
- * Light Shade Studio Works - Functions
- */
 
 // 1. Setup Theme Supports
 // --- SETUP PAGES ON ACTIVATION ---
@@ -366,7 +363,19 @@ function lsw_register_all_menu_pages()
     add_submenu_page(null, 'Theme Setup', 'Theme Setup', 'manage_options', 'lsw-setup-wizard', 'lsw_setup_wizard_content');
     add_management_page('Default Pages', 'Default Pages', 'manage_options', 'lsw-default-pages', 'lsw_default_pages_content');
 }
-
+function lsw_setup_wizard_content() {
+?>
+    <div class="wrap" style="max-width: 600px; margin-top: 50px; text-align: center; background: #fff; padding: 40px; border: 1px solid #ccd0d4; border-radius: 5px;">
+        <h1>Welcome to Light Shade Studio Works!</h1>
+        <p>Would you like to automatically create the default <strong>Home</strong> and <strong>Services</strong> pages?</p>
+        <form method="post">
+            <?php wp_nonce_field('lsw_setup_action', 'lsw_nonce'); ?>
+            <input type="submit" name="lsw_run_setup" class="button button-primary button-hero" value="Yes, create pages">
+            <a href="<?php echo esc_url(admin_url()); ?>" class="button button-hero">No, thanks</a>
+        </form>
+    </div>
+<?php
+}
 // --- 2. THE MANUAL TOOL DISPLAY FUNCTION ---
 function lsw_default_pages_content()
 {
@@ -388,6 +397,36 @@ function lsw_default_pages_content()
     </div>
 <?php
 }
+
+// --- TGM PLUGIN ACTIVATION (EXAMPLE) ---
+require_once get_template_directory() . '/inc/class-tgm-plugin-activation.php';
+add_action( 'tgmpa_register', 'lasw_install_plugins' );
+
+function lasw_install_plugins() {
+    $plugins = array(
+        array(
+            'name'      => 'Axis Folio',
+            'slug'      => 'axis-folio',
+            'source'           => get_template_directory() . '/inc/plugins/axis-folio.zip',
+            'required'  => true,
+        ),
+        // Add more plugins here as needed
+    );
+
+    $config = array(
+        'id'           => 'lsw-theme', // Unique ID for hashing notices for multiple instances of TGMPA.
+        'menu'         => 'tgmpa-install-plugins', // Menu slug.
+        'has_notices'  => false, // Show admin notices or not.
+        'dismiss_msg'  => false, // If 'dismissable' is false, this message will be output at top of nag.
+        'is_automatic' => false, // Automatically activate plugins after installation or not.
+    );
+
+    tgmpa( $plugins, $config );
+}
+
+
+
+
 
 // Update your import function to use a copy
 function lsw_import_theme_image($image_filename)
@@ -482,11 +521,13 @@ function lightshadestudioworks_create_default_pages()
                 update_option('page_on_front', $page_id);
             }
         }
-
+        
         // Set featured image if available, but skip it for the Home page because the content already includes the banner cover block.
         if ($page_id && $data['img_id'] && $data['slug'] !== 'home') {
             set_post_thumbnail($page_id, $data['img_id']);
         }
+        wp_safe_redirect(admin_url('admin.php?page=tgmpa-install-plugins'));
+        exit;
     }
 
     update_option('lsw_pages_created', true);
@@ -510,27 +551,5 @@ function lsw_handle_form_submissions()
     }
 }
 
-// --- 3. DISPLAY FUNCTIONS (Include nonce field in forms) ---
 
-function lsw_setup_wizard_content()
-{
-    $created = (isset($_GET['status']) && $_GET['status'] == 'created');
-?>
-    <div class="wrap" style="max-width: 600px; margin-top: 50px; text-align: center; background: #fff; padding: 40px; border: 1px solid #ccd0d4; border-radius: 5px;">
-        <?php if ($created) : ?>
-            <div class="updated">
-                <p>Pages created successfully! <a href="<?php echo admin_url('edit.php?post_type=page'); ?>">View your pages</a></p>
-            </div>
-            <p>You are all set! <a href="<?php echo admin_url(); ?>" class="button button-primary">Go to Dashboard</a></p>
-        <?php else : ?>
-            <h1>Welcome to Light Shade Studio Works!</h1>
-            <p>Would you like to automatically create the default <strong>Home</strong> and <strong>Services</strong> pages?</p>
-            <form method="post">
-                <?php wp_nonce_field('lsw_setup_action', 'lsw_nonce'); ?>
-                <input type="submit" name="lsw_run_setup" class="button button-primary button-hero" value="Yes, create pages">
-                <a href="<?php echo admin_url('themes.php'); ?>" class="button button-hero">No, thanks</a>
-            </form>
-        <?php endif; ?>
-    </div>
-<?php
-}
+
